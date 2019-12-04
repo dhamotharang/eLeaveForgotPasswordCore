@@ -8,27 +8,38 @@ import { IsNotEmpty, IsString } from "class-validator";
  * @class NewPasswordDTO
  */
 export class NewPasswordDTO {
-  /**
-   * User guid
-   *
-   * @type {string}
-   * @memberof NewPasswordDTO
-   */
-  @ApiModelProperty({ description: 'User guid', example: '0f69b190-0ccf-11ea-93cb-d741ec3e5f8f' })
-  @IsNotEmpty()
-  @IsString()
-  userGuid: string;
+  // /**
+  //  * User guid
+  //  *
+  //  * @type {string}
+  //  * @memberof NewPasswordDTO
+  //  */
+  // @ApiModelProperty({ description: 'User guid', example: '0f69b190-0ccf-11ea-93cb-d741ec3e5f8f' })
+  // @IsNotEmpty()
+  // @IsString()
+  // userGuid: string;
+
+  // /**
+  //  * Login id
+  //  *
+  //  * @type {string}
+  //  * @memberof NewPasswordDTO
+  //  */
+  // @ApiModelProperty({ description: 'Login id', example: 'lll@zen.com.my' })
+  // @IsNotEmpty()
+  // @IsString()
+  // loginId: string;
 
   /**
-   * Login id
+   * Token id
    *
    * @type {string}
    * @memberof NewPasswordDTO
    */
-  @ApiModelProperty({ description: 'Login id', example: 'lll@zen.com.my' })
+  @ApiModelProperty({ description: 'Token id', example: '2452cf30-1646-11ea-960c-9fcc9e56e70a' })
   @IsNotEmpty()
   @IsString()
-  loginId: string;
+  tokenId: string;
 
   /**
    * New encrypted password

@@ -14,6 +14,10 @@ var handlebars = require('handlebars');
  * Declare fs
  */
 var fs = require('fs');
+/**
+ * Declare platform
+ */
+var platform = require('platform');
 
 /**
  * Service for email nodemailer
@@ -30,17 +34,21 @@ export class EmailNodemailerService {
    * @returns
    * @memberof EmailNodemailerService
    */
-  public mailProcessForgotPassword([userGuid, loginId, name, email]: [string, string, string, string]) {
+  public mailProcessForgotPassword([userGuid, loginId, name, email, tokenId, userAgent, appName]: [string, string, string, string, string, string, string]) {
     smtpTransport = this.createSMTP();
-
+    let info = platform.parse(userAgent);
     var replacements = {
       email: email,
-      link: "http://localhost/send-email/send-email.php?id=" + userGuid + "&loginId=" + loginId,
-      name: name
+      product_name: appName,
+      action_url: 'http://zencore:8103/#/reset-password/' + tokenId,
+      // link: "http://localhost/send-email/send-email.php?tokenId=" + tokenId,
+      name: name,
+      operating_system: platform.product,
+      browser_name: info.description
     };
     var from = 'wantan.wonderland.2018@gmail.com';
     var emailTosend = email;
-    var subject = 'Forgot password eLeaveTenant';
+    var subject = 'Forgot password ' + appName;
 
     let data = {};
     data['replacement'] = replacements;

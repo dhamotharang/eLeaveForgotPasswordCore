@@ -47,12 +47,21 @@ export class ForgotPasswordController {
    * @param {*} res
    * @memberof ForgotPasswordController
    */
-  @Post(':email')
+  @Post(':role/:email')
   @ApiOperation({ title: 'Send email forgot password' })
+  @ApiImplicitParam({ name: 'role', description: 'Role user', required: true, enum: ['tenant', 'user'] })
   @ApiImplicitParam({ name: 'email', description: 'Email user', required: true })
-  create(@Param('email') email, @Req() req, @Res() res) {
+  create(@Param() param, @Req() req, @Res() res) {
 
-    this.forgotPasswordService.forgotPasswordProcess(email).subscribe(
+    const userAgent = req.headers['user-agent'];
+
+    let method;
+    if (param.role == 'tenant')
+      method = this.forgotPasswordService.forgotPasswordTenantProcess([param.email, userAgent]);
+    else if (param.role == 'user')
+      method = this.forgotPasswordService.forgotPasswordUserProcess([param.email, userAgent]);
+
+    method.subscribe(
       data => {
         res.send(data);
       }, err => {

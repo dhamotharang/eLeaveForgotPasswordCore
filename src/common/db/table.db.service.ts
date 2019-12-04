@@ -30,7 +30,7 @@ export class RoleDbService extends BaseDBService {
  * @extends {BaseDBService}
  */
 @Injectable()
-export class UserDbService extends BaseDBService {
+export class UserAdminDbService extends BaseDBService {
   /**
    * Declare table
    *
@@ -44,4 +44,52 @@ export class UserDbService extends BaseDBService {
    * @memberof UserDbService
    */
   constructor(public readonly httpService: HttpService, public readonly queryService: QueryParserService) { super(httpService, queryService, "user_main_tenant") }
+}
+
+/**
+ * DB table : user main tenant : user_main_tenant
+ *
+ * @export
+ * @class UserDbService
+ * @extends {BaseDBService}
+ */
+@Injectable()
+export class UserDbService extends BaseDBService {
+  /**
+   * Declare table
+   *
+   * @memberof UserDbService
+   */
+  public tableDB = 'user_main';
+  /**
+   *Creates an instance of UserDbService.
+   * @param {HttpService} httpService http service
+   * @param {QueryParserService} queryService query service
+   * @memberof UserDbService
+   */
+  constructor(public readonly httpService: HttpService, public readonly queryService: QueryParserService) { super(httpService, queryService, "user_main") }
+}
+
+/**
+ * DB table : forgot password : l_forgot_password
+ *
+ * @export
+ * @class ForgotPasswordDbService
+ * @extends {BaseDBService}
+ */
+@Injectable()
+export class ForgotPasswordDbService extends BaseDBService {
+  /**
+   * Declare table
+   *
+   * @memberof UserDbService
+   */
+  public tableDB = 'l_forgot_password';
+  /**
+   *Creates an instance of ForgotPasswordDbService.
+   * @param {HttpService} httpService http service
+   * @param {QueryParserService} queryService query service
+   * @memberof ForgotPasswordDbService
+   */
+  constructor(public readonly httpService: HttpService, public readonly queryService: QueryParserService) { super(httpService, queryService, "l_forgot_password") }
 }
