@@ -138,14 +138,16 @@ export class ForgotPasswordService {
             let userFullname = res[0].FULLNAME;
             let loginId = res[0].LOGIN_ID;
 
-            let results = this.createToken([userGuid, loginId, userFullname, 'tenant']).pipe(map(
-              data => {
-                const tokenId = data.data.resource[0].TOKEN_GUID;
-                return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave Tenant Management']);
-              }, err => {
-                return err.response.data.error.context.resource;
-              }
-            ));
+            // let results = this.createToken([userGuid, loginId, userFullname, 'tenant']).pipe(map(
+            //   data => {
+            //     const tokenId = data.data.resource[0].TOKEN_GUID;
+            //     return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave Tenant Management']);
+            //   }, err => {
+            //     return err.response.data.error.context.resource;
+            //   }
+            // ));
+
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management']);
 
             // let results = this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, null, 'eLeave Tenant Management']);
             return results;
@@ -159,6 +161,8 @@ export class ForgotPasswordService {
     }
 
   }
+
+
 
   /**
    * Send email for user eLeave
@@ -178,15 +182,17 @@ export class ForgotPasswordService {
             let userFullname = res[0].EMAIL;
             let loginId = res[0].LOGIN_ID;
 
-            let results = this.createToken([userGuid, loginId, userFullname, 'user']).pipe(map(
-              data => {
-                const tokenId = data.data.resource[0].TOKEN_GUID;
-                return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave']);
-              }, err => {
-                return err.response.data.error.context.resource;
-              }
-            ));
+            // let results = this.createToken([userGuid, loginId, userFullname, 'user']).pipe(map(
+            //   data => {
+            //     const tokenId = data.data.resource[0].TOKEN_GUID;
+            //     return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave']);
+            //   }, err => {
+            //     return err.response.data.error.context.resource;
+            //   }
+            // ));
             // let results = this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email]);
+
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave']);
 
             return results;
           } else {
@@ -198,6 +204,17 @@ export class ForgotPasswordService {
       throw new BadRequestException('Please set an email', 'No email specify');
     }
 
+  }
+
+  public createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app]: [string, string, string, string, string, string, string]) {
+    return this.createToken([userGuid, loginId, userFullname, role]).pipe(map(
+      data => {
+        const tokenId = data.data.resource[0].TOKEN_GUID;
+        return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, app]);
+      }, err => {
+        return err.response.data.error.context.resource;
+      }
+    ));
   }
 
   /**
