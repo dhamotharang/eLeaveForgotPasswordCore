@@ -9,6 +9,10 @@ import { of, Observable } from 'rxjs';
 import { EmailNodemailerService } from '../common/helper/email-nodemailer.service';
 import { v1 } from 'uuid';
 import { ForgotPasswordModel } from '../common/model/forgot-password.model';
+import iplocation from "iplocation";
+import { IPResponse } from 'iplocation/lib/interface';
+const publicIp = require('public-ip');
+var { convertJsonToXML } = require('@zencloudservices/xmlparser');
 
 /**
  * Service for forgot password
@@ -138,18 +142,8 @@ export class ForgotPasswordService {
             let userFullname = res[0].FULLNAME;
             let loginId = res[0].LOGIN_ID;
 
-            // let results = this.createToken([userGuid, loginId, userFullname, 'tenant']).pipe(map(
-            //   data => {
-            //     const tokenId = data.data.resource[0].TOKEN_GUID;
-            //     return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave Tenant Management']);
-            //   }, err => {
-            //     return err.response.data.error.context.resource;
-            //   }
-            // ));
-
             let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management']);
 
-            // let results = this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, null, 'eLeave Tenant Management']);
             return results;
           } else {
             throw new NotFoundException('No user registered with this email', 'No user found');
@@ -181,17 +175,6 @@ export class ForgotPasswordService {
             let userGuid = res[0].USER_GUID;
             let userFullname = res[0].EMAIL;
             let loginId = res[0].LOGIN_ID;
-
-            // let results = this.createToken([userGuid, loginId, userFullname, 'user']).pipe(map(
-            //   data => {
-            //     const tokenId = data.data.resource[0].TOKEN_GUID;
-            //     return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, 'eLeave']);
-            //   }, err => {
-            //     return err.response.data.error.context.resource;
-            //   }
-            // ));
-            // let results = this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email]);
-
             let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave']);
 
             return results;
@@ -206,15 +189,16 @@ export class ForgotPasswordService {
 
   }
 
-  public createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app]: [string, string, string, string, string, string, string]) {
-    return this.createToken([userGuid, loginId, userFullname, role]).pipe(map(
-      data => {
+  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app]: [string, string, string, string, string, string, string]) {
+    const myIp = await publicIp.v4();
+    let myLocation = await iplocation(myIp);
+
+    return await this.createToken([userGuid, loginId, userFullname, role, myLocation]).then(
+      async data => {
         const tokenId = data.data.resource[0].TOKEN_GUID;
-        return this.emailNodemailerService.mailProcessForgotPassword([userGuid, loginId, userFullname, email, tokenId, userAgent, app]);
-      }, err => {
-        return err.response.data.error.context.resource;
+        return await this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation]);
       }
-    ));
+    );
   }
 
   /**
@@ -224,7 +208,10 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public createToken([userGuid, loginId, fullname, role]: [string, string, string, string]) {
+  public async createToken([userGuid, loginId, fullname, role, myLocation]: [string, string, string, string, IPResponse]) {
+    // setup xml data user access from location
+    let xmlLocation = [];
+    xmlLocation['root'] = myLocation;
 
     const resource = new Resource(new Array);
     let model = new ForgotPasswordModel();
@@ -234,11 +221,36 @@ export class ForgotPasswordService {
     model.LOGIN_ID = loginId;
     model.FULLNAME = fullname;
     model.ROLE = role;
+    model.USER_TRACKING = convertJsonToXML(xmlLocation);
 
     resource.resource.push(model);
 
-    return this.forgotPasswordDbService.createByModel([resource, [], [], ['TOKEN_GUID']])
-    // return userGuid + '-' + loginId + '-' + fullname + '-' + model.TOKEN_GUID;
+    return this.forgotPasswordDbService.createByModel([resource, [], [], ['TOKEN_GUID']]).toPromise();
+  }
+
+  /**
+   * Send email setup
+   *
+   * @param {[string, string, string, string, string, IPResponse]} [name, email, tokenId, userAgent, appName, myLocation]
+   * @returns
+   * @memberof ForgotPasswordService
+   */
+  public async sendMailSetup([name, email, tokenId, userAgent, appName, myLocation]: [string, string, string, string, string, IPResponse]) {
+    const { ip, timezone, postal, city, region, country, latitude, longitude } = myLocation;
+
+    var replacements = {
+      email: email,
+      product_name: appName,
+      action_url: 'http://zencore:8103/#/reset-password/' + tokenId,
+      name: name,
+      ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
+    };
+    var from = 'wantan.wonderland.2018@gmail.com';
+    var emailTosend = email;
+    var subject = 'Forgot password ' + appName;
+    var template = 'src/common/email-templates/forgot-password.html';
+
+    return await this.emailNodemailerService.mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]);
   }
 
 }

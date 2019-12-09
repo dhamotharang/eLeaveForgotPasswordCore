@@ -61,6 +61,24 @@ export class EmailNodemailerService {
     return { "status": "email send" };
   }
 
+  public mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]: [any, string, string, string, string, string]) {
+    smtpTransport = this.createSMTP();
+    let info = platform.parse(userAgent);
+
+    replacements.operating_system = platform.product;
+    replacements.browser_name = info.description;
+
+    let data = {};
+    data['replacement'] = replacements;
+    data['from'] = from;
+    data['emailTosend'] = emailTosend;
+    data['subject'] = subject;
+
+    let dataRes = this.readHTMLFile(template, this.callbackReadHTML(data));
+
+    return { "status": "email send" };
+  }
+
   /**
    * Setup and send email
    *

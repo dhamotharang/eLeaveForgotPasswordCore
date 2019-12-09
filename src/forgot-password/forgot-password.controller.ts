@@ -1,4 +1,4 @@
-import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req } from '@nestjs/common';
+import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get } from '@nestjs/common';
 import { ApiOperation, ApiImplicitParam } from "@nestjs/swagger";
 import { ForgotPasswordService } from './forgot-password.service';
 import { NewPasswordDTO } from './dto/new-password.dto';
@@ -68,9 +68,5 @@ export class ForgotPasswordController {
         res.send(err);
       }
     );
-
   }
-
-
-
 }

@@ -41,6 +41,13 @@ export class ForgotPasswordModel {
    */
   ROLE: string;
   /**
+   * User access info
+   *
+   * @type {string}
+   * @memberof ForgotPasswordModel
+   */
+  USER_TRACKING: string;
+  /**
    * Deleted at
    *
    * @type {string}
