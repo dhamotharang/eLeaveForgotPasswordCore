@@ -1,8 +1,10 @@
-import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get } from '@nestjs/common';
+import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get, BadRequestException } from '@nestjs/common';
 import { ApiOperation, ApiImplicitParam } from "@nestjs/swagger";
 import { ForgotPasswordService } from './forgot-password.service';
 import { NewPasswordDTO } from './dto/new-password.dto';
 import { Response } from 'express';
+import { SendEmailDTO } from './dto/send-email.dto';
+import { of } from 'rxjs';
 
 /**
  * Controller for forgot password
@@ -47,19 +49,19 @@ export class ForgotPasswordController {
    * @param {*} res
    * @memberof ForgotPasswordController
    */
-  @Post(':role/:email')
+  @Post()
   @ApiOperation({ title: 'Send email forgot password' })
-  @ApiImplicitParam({ name: 'role', description: 'Role user', required: true, enum: ['tenant', 'user'] })
-  @ApiImplicitParam({ name: 'email', description: 'Email user', required: true })
-  create(@Param() param, @Req() req, @Res() res) {
+  create(@Body() sendEmailDTO: SendEmailDTO, @Req() req, @Res() res) {
 
     const userAgent = req.headers['user-agent'];
 
     let method;
-    if (param.role == 'tenant')
-      method = this.forgotPasswordService.forgotPasswordTenantProcess([param.email, userAgent]);
-    else if (param.role == 'user')
-      method = this.forgotPasswordService.forgotPasswordUserProcess([param.email, userAgent]);
+    if (sendEmailDTO.role == 'tenant')
+      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO.email, userAgent]);
+    else if (sendEmailDTO.role == 'user')
+      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO.email, userAgent]);
+    else
+      method = of(new BadRequestException('Invalid filter'));
 
     method.subscribe(
       data => {
