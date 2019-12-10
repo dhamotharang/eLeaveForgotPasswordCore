@@ -194,9 +194,9 @@ export class ForgotPasswordService {
     let myLocation = await iplocation(myIp);
 
     return await this.createToken([userGuid, loginId, userFullname, role, myLocation]).then(
-      async data => {
+      data => {
         const tokenId = data.data.resource[0].TOKEN_GUID;
-        return await this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation]);
+        return this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation]);
       }
     );
   }
@@ -208,7 +208,7 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public async createToken([userGuid, loginId, fullname, role, myLocation]: [string, string, string, string, IPResponse]) {
+  public createToken([userGuid, loginId, fullname, role, myLocation]: [string, string, string, string, IPResponse]) {
     // setup xml data user access from location
     let xmlLocation = [];
     xmlLocation['root'] = myLocation;
@@ -235,13 +235,13 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public async sendMailSetup([name, email, tokenId, userAgent, appName, myLocation]: [string, string, string, string, string, IPResponse]) {
+  public sendMailSetup([name, email, tokenId, userAgent, appName, myLocation]: [string, string, string, string, string, IPResponse]) {
     const { ip, timezone, postal, city, region, country, latitude, longitude } = myLocation;
 
     var replacements = {
       email: email,
       product_name: appName,
-      action_url: 'http://zencore.zen.com.my:8103/#/reset-password/' + tokenId,
+      action_url: 'http://zencore:8103/#/reset-password/' + tokenId,
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
     };
@@ -250,7 +250,7 @@ export class ForgotPasswordService {
     var subject = 'Forgot password ' + appName;
     var template = 'src/common/email-templates/forgot-password.html';
 
-    return await this.emailNodemailerService.mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]);
+    return this.emailNodemailerService.mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]);
   }
 
 }

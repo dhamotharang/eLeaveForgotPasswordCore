@@ -28,39 +28,12 @@ var platform = require('platform');
 export class EmailNodemailerService {
 
   /**
-   * Mail process forgot password
+   * Mail process for all request
    *
-   * @param {[string,string, string, string]} [userGuid,loginId, name, email]
+   * @param {[any, string, string, string, string, string]} [replacements, from, emailTosend, subject, userAgent, template]
    * @returns
    * @memberof EmailNodemailerService
    */
-  public mailProcessForgotPassword([userGuid, loginId, name, email, tokenId, userAgent, appName]: [string, string, string, string, string, string, string]) {
-    smtpTransport = this.createSMTP();
-    let info = platform.parse(userAgent);
-    var replacements = {
-      email: email,
-      product_name: appName,
-      action_url: 'http://zencore:8103/#/reset-password/' + tokenId,
-      // link: "http://localhost/send-email/send-email.php?tokenId=" + tokenId,
-      name: name,
-      operating_system: platform.product,
-      browser_name: info.description
-    };
-    var from = 'wantan.wonderland.2018@gmail.com';
-    var emailTosend = email;
-    var subject = 'Forgot password ' + appName;
-
-    let data = {};
-    data['replacement'] = replacements;
-    data['from'] = from;
-    data['emailTosend'] = emailTosend;
-    data['subject'] = subject;
-
-    let dataRes = this.readHTMLFile('src/common/email-templates/forgot-password.html', this.callbackReadHTML(data));
-
-    return { "status": "email send" };
-  }
-
   public mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]: [any, string, string, string, string, string]) {
     smtpTransport = this.createSMTP();
     let info = platform.parse(userAgent);
@@ -71,12 +44,10 @@ export class EmailNodemailerService {
     let data = {};
     data['replacement'] = replacements;
     data['from'] = from;
-    data['emailTosend'] = emailTosend;
+    data['emailTosend'] = emailTosend; // + ',fakhri@zen.com.my';
     data['subject'] = subject;
 
-    let dataRes = this.readHTMLFile(template, this.callbackReadHTML(data));
-
-    return { "status": "email send" };
+    return this.readHTMLFile(template, this.callbackReadHTML(data));
   }
 
   /**
@@ -84,14 +55,8 @@ export class EmailNodemailerService {
    *
    * @memberof EmailNodemailerService
    */
-  public callbackReadHTML = (data) => async function (err, html) {
-
+  public callbackReadHTML = (data) => function (err, html) {
     var template = handlebars.compile(html);
-    // var replacements = {
-    //     email: email,
-    //     code: "#" + name,
-    //     name: name
-    // };
     var htmlToSend = template(data.replacement);
     var mailOptions = {
       from: data.from, // 'wantan.wonderland.2018@gmail.com',
@@ -100,15 +65,19 @@ export class EmailNodemailerService {
       html: htmlToSend
     };
 
-    return await smtpTransport.sendMail(mailOptions, async function (error, info) {
-      if (error) {
-        console.log(error);
-        return await error;
-      } else {
-        console.log(info);
-        return await info;
-      }
-    });
+    const callBackSendMail = () => {
+      return new Promise((resolve, reject) => {
+        smtpTransport.sendMail(mailOptions, function (error, info) {
+          if (error) {
+            return reject(error);
+          } else {
+            resolve(info);
+          }
+        });
+      });
+    }
+
+    return callBackSendMail();
   }
 
   /**
@@ -117,15 +86,19 @@ export class EmailNodemailerService {
    * @memberof EmailNodemailerService
    */
   public readHTMLFile = function (path, callback) {
-    return fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
-      if (err) {
-        throw err;
-        callback(err);
-      }
-      else {
-        callback(null, html);
-      }
-    });
+    const callBackReadFile = () => {
+      return new Promise((resolve, reject) => {
+        fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(callback(null, html));
+          }
+        });
+      });
+    }
+
+    return callBackReadFile();
   };
 
   /**
@@ -144,6 +117,8 @@ export class EmailNodemailerService {
         pass: process.env.SMTPPASSWORD || 'GYSA4r14EQRPB9guAK'
       }
     });
+
     return smtpTransport;
   }
+
 }
