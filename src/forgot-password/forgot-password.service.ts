@@ -131,7 +131,7 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordTenantProcess([email, userAgent]: [string, string]) {
+  public forgotPasswordTenantProcess([email, userAgent, ip]: [string, string, string]) {
 
     if (email != '{email}' && email.trim() != '') {
 
@@ -142,7 +142,7 @@ export class ForgotPasswordService {
             let userFullname = res[0].FULLNAME;
             let loginId = res[0].LOGIN_ID;
 
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management']);
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
 
             return results;
           } else {
@@ -165,7 +165,7 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordUserProcess([email, userAgent]: [string, string]) {
+  public forgotPasswordUserProcess([email, userAgent, ip]: [string, string, string]) {
 
     if (email != '{email}' && email.trim() != '') {
 
@@ -175,7 +175,7 @@ export class ForgotPasswordService {
             let userGuid = res[0].USER_GUID;
             let userFullname = res[0].EMAIL;
             let loginId = res[0].LOGIN_ID;
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave']);
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave', ip]);
 
             return results;
           } else {
@@ -189,27 +189,32 @@ export class ForgotPasswordService {
 
   }
 
-  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app]: [string, string, string, string, string, string, string]) {
+  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app, ip]: [string, string, string, string, string, string, string, string]) {
     // const myIp = await publicIp.v4();
 
-    const getIP = require('external-ip')();
+    // const getIP = require('external-ip')();
 
-    const ipData = () => {
-      return new Promise((resolve, reject) => {
-        getIP((err, ip) => {
-          if (err) {
-            // every service in the list has failed
-            return reject(err);
-          }
-          else {
-            resolve(ip)
-          }
-        });
-      });
-    }
+    // const ipData = () => {
+    //   return new Promise((resolve, reject) => {
+    //     getIP((err, ip) => {
+    //       if (err) {
+    //         // every service in the list has failed
+    //         return reject(err);
+    //       }
+    //       else {
+    //         resolve(ip)
+    //       }
+    //     });
+    //   });
+    // }
 
-    let myIp: any = await ipData();
+    // let myIp: any = await ipData();
     // console.log(myIpTemp + '' + myIp);
+    let myIp = ip;
+    console.log(myIp);
+    // if (myIp == '1') {
+    //   myIp = '60.53.219.114';
+    // }
 
     let myLocation = await iplocation(myIp);
 

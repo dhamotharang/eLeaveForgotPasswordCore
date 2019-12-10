@@ -54,11 +54,25 @@ export class ForgotPasswordController {
   async create(@Body() sendEmailDTO: SendEmailDTO, @Req() req, @Res() res) {
 
     const userAgent = req.headers['user-agent'];
+    // console.log(req.connection);
+
+    const requestIp = require('request-ip');
+
+    // inside middleware handler
+    const ipMiddleware = function (req) {
+      const clientIp = requestIp.getClientIp(req);
+      var splitted = clientIp.split(':');
+      return splitted[splitted.length - 1];
+    };
+
+    const ip = ipMiddleware(req);
+    // console.log(ip);
+
     let method;
     if (sendEmailDTO.role == 'tenant')
-      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO.email, userAgent]);
+      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO.email, userAgent, ip]);
     else if (sendEmailDTO.role == 'user')
-      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO.email, userAgent]);
+      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO.email, userAgent, ip]);
     else
       method = of(new BadRequestException('Invalid filter'));
 
