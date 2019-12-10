@@ -11,7 +11,7 @@ import { v1 } from 'uuid';
 import { ForgotPasswordModel } from '../common/model/forgot-password.model';
 import iplocation from "iplocation";
 import { IPResponse } from 'iplocation/lib/interface';
-const publicIp = require('public-ip');
+// const publicIp = require('public-ip');
 var { convertJsonToXML } = require('@zencloudservices/xmlparser');
 
 /**
@@ -190,7 +190,27 @@ export class ForgotPasswordService {
   }
 
   public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app]: [string, string, string, string, string, string, string]) {
-    const myIp = await publicIp.v4();
+    // const myIp = await publicIp.v4();
+
+    const getIP = require('external-ip')();
+
+    const ipData = () => {
+      return new Promise((resolve, reject) => {
+        getIP((err, ip) => {
+          if (err) {
+            // every service in the list has failed
+            return reject(err);
+          }
+          else {
+            resolve(ip)
+          }
+        });
+      });
+    }
+
+    let myIp: any = await ipData();
+    // console.log(myIpTemp + '' + myIp);
+
     let myLocation = await iplocation(myIp);
 
     return await this.createToken([userGuid, loginId, userFullname, role, myLocation]).then(
