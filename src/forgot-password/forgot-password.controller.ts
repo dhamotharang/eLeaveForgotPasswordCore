@@ -58,6 +58,8 @@ export class ForgotPasswordController {
 
     const requestIp = require('request-ip');
 
+    let ip;
+
     // inside middleware handler
     const ipMiddleware = function (req) {
       const clientIp = requestIp.getClientIp(req);
@@ -65,8 +67,23 @@ export class ForgotPasswordController {
       return splitted[splitted.length - 1];
     };
 
-    const ip = ipMiddleware(req);
+    ip = ipMiddleware(req);
     // console.log(ip);
+    var externalip = require('externalip');
+
+    const getExternalIp = async () => {
+      return await new Promise((resolve, reject) => {
+        externalip(function (err, ip) {
+          if (err) { return reject(err); }
+          else { resolve(ip); }
+        });
+      });
+    }
+    const myIp = await getExternalIp();
+
+    // console.log(myIp);
+
+    ip = myIp;
 
     let method;
     if (sendEmailDTO.role == 'tenant')
