@@ -108,6 +108,8 @@ export class ForgotPasswordController {
     // console.log(ip_info);
     // console.log(ip_data);
     console.log(req.headers);
+    if (req.headers.hasOwnProperty('x-forwarded-for'))
+      ip = req.headers['x-forwarded-for'];
 
 
     let method;
