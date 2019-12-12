@@ -1,4 +1,4 @@
-import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get, BadRequestException } from '@nestjs/common';
+import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get, BadRequestException, HttpService } from '@nestjs/common';
 import { ApiOperation } from "@nestjs/swagger";
 import { ForgotPasswordService } from './forgot-password.service';
 import { NewPasswordDTO } from './dto/new-password.dto';
@@ -19,7 +19,10 @@ export class ForgotPasswordController {
    * @param {ForgotPasswordService} forgotPasswordService Service for forgot password
    * @memberof ForgotPasswordController
    */
-  constructor(private readonly forgotPasswordService: ForgotPasswordService) { }
+  constructor(
+    private readonly forgotPasswordService: ForgotPasswordService,
+    private readonly httpService: HttpService
+  ) { }
 
   /**
    * Forgot password api
@@ -84,6 +87,20 @@ export class ForgotPasswordController {
     // console.log(myIp);
 
     ip = myIp;
+
+    const dataTemp = () => {
+      return new Promise((resolve, reject) => {
+        this.httpService.get('http://pv.sohu.com/cityjson').subscribe(
+          data => {
+            resolve(data.data);
+          }, err => {
+            return reject(err);
+          }
+        );
+      });
+    }
+    const dataIp = await dataTemp();
+    console.log(dataIp);
 
     let method;
     if (sendEmailDTO.role == 'tenant')
