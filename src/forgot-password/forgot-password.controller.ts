@@ -108,9 +108,13 @@ export class ForgotPasswordController {
     // console.log(ip_info);
     // console.log(ip_data);
     console.log(req.headers);
-    if (req.headers.hasOwnProperty('x-forwarded-for'))
+    // if (req.headers.hasOwnProperty('x-forwarded-for') || req.headers.hasOwnProperty('x-real-ip')){
+    // ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
+    if (req.headers.hasOwnProperty('x-real-ip') && req.headers['x-real-ip'] != '-')
+      ip = req.headers['x-real-ip'];
+    else if (req.headers.hasOwnProperty('x-forwarded-for'))
       ip = req.headers['x-forwarded-for'];
-
+    // }
 
     let method;
     if (sendEmailDTO.role == 'tenant')
