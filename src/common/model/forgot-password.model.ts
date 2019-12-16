@@ -34,6 +34,13 @@ export class ForgotPasswordModel {
    */
   FULLNAME: string;
   /**
+   * Response url
+   *
+   * @type {string}
+   * @memberof ForgotPasswordModel
+   */
+  HTTP_REFERER: string;
+  /**
    * Application role
    *
    * @type {string}

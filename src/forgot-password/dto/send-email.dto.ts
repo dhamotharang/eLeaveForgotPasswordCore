@@ -28,4 +28,14 @@ export class SendEmailDTO {
   @IsNotEmpty()
   @IsString()
   role: string;
+  /**
+   * Link response
+   *
+   * @type {string}
+   * @memberof SendEmailDTO
+   */
+  @ApiModelProperty({ description: 'Link response', example: 'http://zencore.zen.com.my:8101/#/' })
+  @IsNotEmpty()
+  @IsString()
+  httpReferer: string;
 }

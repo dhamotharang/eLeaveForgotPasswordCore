@@ -11,6 +11,7 @@ import { v1 } from 'uuid';
 import { ForgotPasswordModel } from '../common/model/forgot-password.model';
 import iplocation from "iplocation";
 import { IPResponse } from 'iplocation/lib/interface';
+import { SendEmailDTO } from './dto/send-email.dto';
 // const publicIp = require('public-ip');
 var { convertJsonToXML } = require('@zencloudservices/xmlparser');
 
@@ -96,9 +97,15 @@ export class ForgotPasswordService {
     const resource = new Resource(new Array);
     resource.resource.push(data);
 
-    this.deleteToken(newPasswordData.tokenId);
+    method.updateByModel([resource, [], [], []]).subscribe(
+      data => {
+        // console.log(data.data.resource);
+      }, err => {
+        // console.log(err);
+      });
 
-    return method.updateByModel([resource, [], [], []]);
+    return this.deleteToken(newPasswordData.tokenId);
+
 
   }
 
@@ -110,18 +117,14 @@ export class ForgotPasswordService {
    * @memberof ForgotPasswordService
    */
   public deleteToken(tokenId: string) {
+
     let model = new ForgotPasswordModel();
     model.TOKEN_GUID = tokenId;
     model.DELETED_AT = new Date().toISOString();
     const resource = new Resource(new Array);
     resource.resource.push(model);
-    return this.forgotPasswordDbService.updateByModel([resource, [], [], []]).subscribe(
-      data => {
-        console.log('token deleted');
-      }, err => {
-        console.log('error');
-      }
-    );
+
+    return this.forgotPasswordDbService.updateByModel([resource, ['TOKEN_GUID', 'HTTP_REFERER'], [], []]);
   }
 
   /**
@@ -131,8 +134,8 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordTenantProcess([email, userAgent, ip]: [string, string, string]) {
-
+  public forgotPasswordTenantProcess([sendEmailDTO, userAgent, ip]: [SendEmailDTO, string, string]) {
+    const { email, httpReferer } = sendEmailDTO;
     if (email != '{email}' && email.trim() != '') {
 
       return this.userAdminDbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
@@ -142,7 +145,7 @@ export class ForgotPasswordService {
             let userFullname = res[0].FULLNAME;
             let loginId = res[0].LOGIN_ID;
 
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management', ip, httpReferer]);
 
             return results;
           } else {
@@ -165,8 +168,8 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordUserProcess([email, userAgent, ip]: [string, string, string]) {
-
+  public forgotPasswordUserProcess([sendEmailDTO, userAgent, ip]: [SendEmailDTO, string, string]) {
+    const { email, httpReferer } = sendEmailDTO;
     if (email != '{email}' && email.trim() != '') {
 
       return this.userDbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
@@ -175,7 +178,7 @@ export class ForgotPasswordService {
             let userGuid = res[0].USER_GUID;
             let userFullname = res[0].EMAIL;
             let loginId = res[0].LOGIN_ID;
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave', ip]);
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave', ip, httpReferer]);
 
             return results;
           } else {
@@ -189,7 +192,7 @@ export class ForgotPasswordService {
 
   }
 
-  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app, ip]: [string, string, string, string, string, string, string, string]) {
+  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app, ip, httpReferer]: [string, string, string, string, string, string, string, string, string]) {
     // const myIp = await publicIp.v4();
 
     // const getIP = require('external-ip')();
@@ -218,7 +221,7 @@ export class ForgotPasswordService {
 
     let myLocation = await iplocation(myIp);
 
-    return await this.createToken([userGuid, loginId, userFullname, role, myLocation]).then(
+    return await this.createToken([userGuid, loginId, userFullname, role, myLocation, httpReferer]).then(
       data => {
         const tokenId = data.data.resource[0].TOKEN_GUID;
         return this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation, role]);
@@ -233,7 +236,7 @@ export class ForgotPasswordService {
    * @returns
    * @memberof ForgotPasswordService
    */
-  public createToken([userGuid, loginId, fullname, role, myLocation]: [string, string, string, string, IPResponse]) {
+  public createToken([userGuid, loginId, fullname, role, myLocation, httpReferer]: [string, string, string, string, IPResponse, string]) {
     // setup xml data user access from location
     let xmlLocation = [];
     xmlLocation['root'] = myLocation;
@@ -245,6 +248,7 @@ export class ForgotPasswordService {
     model.USER_GUID = userGuid;
     model.LOGIN_ID = loginId;
     model.FULLNAME = fullname;
+    model.HTTP_REFERER = httpReferer;
     model.ROLE = role;
     model.USER_TRACKING = convertJsonToXML(xmlLocation);
 

@@ -38,7 +38,7 @@ export class ForgotPasswordController {
       data => {
         res.send(data);
       }, err => {
-        res.send(new NotFoundException('User not found'));
+        res.send(new NotFoundException('Password not update'));
       }
     );
 
@@ -118,9 +118,9 @@ export class ForgotPasswordController {
 
     let method;
     if (sendEmailDTO.role == 'tenant')
-      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO.email, userAgent, ip]);
+      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO, userAgent, ip]);
     else if (sendEmailDTO.role == 'user')
-      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO.email, userAgent, ip]);
+      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO, userAgent, ip]);
     else
       method = of(new BadRequestException('Invalid filter'));
 
