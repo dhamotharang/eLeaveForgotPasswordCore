@@ -1,4 +1,4 @@
-import { Controller, Body, Res, NotFoundException, Patch, Post, Param, Req, Get, BadRequestException, HttpService } from '@nestjs/common';
+import { Controller, Body, Res, NotFoundException, Patch, Post, Req, BadRequestException } from '@nestjs/common';
 import { ApiOperation } from "@nestjs/swagger";
 import { ForgotPasswordService } from './forgot-password.service';
 import { NewPasswordDTO } from './dto/new-password.dto';
@@ -20,8 +20,7 @@ export class ForgotPasswordController {
    * @memberof ForgotPasswordController
    */
   constructor(
-    private readonly forgotPasswordService: ForgotPasswordService,
-    private readonly httpService: HttpService
+    private readonly forgotPasswordService: ForgotPasswordService
   ) { }
 
   /**
@@ -32,7 +31,7 @@ export class ForgotPasswordController {
    * @memberof ForgotPasswordController
    */
   @Patch()
-  @ApiOperation({ title: 'Forgot password', description: 'Forgot password set new user password in local db. \nPermission : superadmin, salesperson, support' })
+  @ApiOperation({ title: 'Forgot password', description: 'Set new user password in local db. \nPermission : superadmin, salesperson, support' })
   forgotPassword(@Body() newPasswordData: NewPasswordDTO, @Res() res: Response) {
     this.forgotPasswordService.forgotPassword([newPasswordData]).subscribe(
       data => {
@@ -57,70 +56,35 @@ export class ForgotPasswordController {
   async create(@Body() sendEmailDTO: SendEmailDTO, @Req() req, @Res() res) {
 
     const userAgent = req.headers['user-agent'];
-    // console.log(req.connection);
 
-    // const requestIp = require('request-ip');
+    // let ip;
+    let ip = await this.getMyIp([req]);
 
-    let ip;
+    // var externalip = require('externalip');
 
-    // // inside middleware handler
-    // const ipMiddleware = function (req) {
-    //   const clientIp = requestIp.getClientIp(req);
-    //   var splitted = clientIp.split(':');
-    //   return splitted[splitted.length - 1];
-    // };
-
-    // ip = ipMiddleware(req);
-    // console.log(ip);
-    var externalip = require('externalip');
-
-    const getExternalIp = async () => {
-      return await new Promise((resolve, reject) => {
-        externalip(function (err, ip) {
-          if (err) { return reject(err); }
-          else { resolve(ip); }
-        });
-      });
-    }
-    const myIp = await getExternalIp();
-
-    // console.log(myIp);
-
-    ip = myIp;
-
-    // const dataTemp = () => {
-    //   return new Promise((resolve, reject) => {
-    //     this.httpService.get('http://pv.sohu.com/cityjson').subscribe(
-    //       data => {
-    //         resolve(data.data);
-    //       }, err => {
-    //         return reject(err);
-    //       }
-    //     );
+    // const getExternalIp = async () => {
+    //   return await new Promise((resolve, reject) => {
+    //     externalip(function (err, ip) {
+    //       // if (err) { return reject(err); }
+    //       // else { resolve(ip); }
+    //       err ? reject(err) : resolve(ip);
+    //     });
     //   });
     // }
-    // const dataIp = await dataTemp();
-    // console.log(dataIp);
+    // const myIp = await getExternalIp();
 
-    // var get_non_routable_prefix_list = require('ipware');
-    // var ip_info = get_non_routable_prefix_list();
-    // var ip_data = get_non_routable_prefix_list().get_headers_attribute(req.header, 'X_FORWARDED_FOR');
-    // console.log(ip_info);
-    // console.log(ip_data);
-    console.log(req.headers);
-    // if (req.headers.hasOwnProperty('x-forwarded-for') || req.headers.hasOwnProperty('x-real-ip')){
-    // ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
-    if (req.headers.hasOwnProperty('x-real-ip') && req.headers['x-real-ip'] != '-')
-      ip = req.headers['x-real-ip'];
-    else if (req.headers.hasOwnProperty('x-forwarded-for'))
-      ip = req.headers['x-forwarded-for'];
-    // }
+    // ip = myIp;
+
+    // if (req.headers.hasOwnProperty('x-real-ip') && req.headers['x-real-ip'] != '-')
+    //   ip = req.headers['x-real-ip'];
+    // else if (req.headers.hasOwnProperty('x-forwarded-for'))
+    //   ip = req.headers['x-forwarded-for'];
 
     let method;
     if (sendEmailDTO.role == 'tenant')
-      method = this.forgotPasswordService.forgotPasswordTenantProcess([sendEmailDTO, userAgent, ip]);
+      method = this.forgotPasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'tenant']);
     else if (sendEmailDTO.role == 'user')
-      method = this.forgotPasswordService.forgotPasswordUserProcess([sendEmailDTO, userAgent, ip]);
+      method = this.forgotPasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'user']);
     else
       method = of(new BadRequestException('Invalid filter'));
 
@@ -132,5 +96,28 @@ export class ForgotPasswordController {
       }
     );
   }
+
+  private async getMyIp([req]) {
+
+    let myIp;
+
+    if (req.headers.hasOwnProperty('x-real-ip') && req.headers['x-real-ip'] != '-')
+      myIp = req.headers['x-real-ip'];
+    else if (req.headers.hasOwnProperty('x-forwarded-for'))
+      myIp = req.headers['x-forwarded-for'];
+    else {
+      var externalip = require('externalip');
+
+      const getExternalIp = async () => {
+        return await new Promise((resolve, reject) => {
+          externalip(function (err, ip) { err ? reject(err) : resolve(ip); });
+        });
+      }
+      myIp = await getExternalIp();
+    }
+
+    return myIp;
+  }
+
 
 }

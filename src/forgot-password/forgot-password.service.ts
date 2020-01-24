@@ -7,13 +7,11 @@ import { encryptProcess, setUpdateData } from '../common/helper/basic-function.f
 import { Resource } from '../common/model/resource.model';
 import { of, Observable } from 'rxjs';
 import { EmailNodemailerService } from '../common/helper/email-nodemailer.service';
-import { v1 } from 'uuid';
 import { ForgotPasswordModel } from '../common/model/forgot-password.model';
 import iplocation from "iplocation";
 import { IPResponse } from 'iplocation/lib/interface';
 import { SendEmailDTO } from './dto/send-email.dto';
-// const publicIp = require('public-ip');
-var { convertJsonToXML } = require('@zencloudservices/xmlparser');
+import { deleteToken, createToken } from './token-password.function';
 
 /**
  * Service for forgot password
@@ -49,18 +47,9 @@ export class ForgotPasswordService {
     return this.forgotPasswordDbService.findByFilterV4([[], ['(TOKEN_GUID=' + data.tokenId + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
       mergeMap(res => {
         if (res.length > 0) {
-          let dbTable = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
+          // let dbTable = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
           let processMethod = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
-          return this.checkUser([dbTable, res[0].USER_GUID]).pipe(
-            mergeMap(res2 => {
-              if (res2.length == 0) {
-                return of(new NotFoundException('User not found'));
-              } else {
-                return this.processPassword([data, res[0], processMethod]).pipe(map(res => {
-                  return res.data.resource;
-                }));
-              }
-            }));
+          return this.checkUser([res, processMethod, data]);
         } else
           return of(new BadRequestException('Invalid token'));
       }));
@@ -73,8 +62,17 @@ export class ForgotPasswordService {
    * @returns {Observable<any>}
    * @memberof ForgotPasswordService
    */
-  public checkUser([dbTable, userGuid]: [any, string]): Observable<any> {
-    return dbTable.findByFilterV4([[], ['(USER_GUID=' + userGuid + ')'], null, null, null, [], null]);
+  public checkUser([res, processMethod, data]: [any[], UserAdminDbService | UserDbService, NewPasswordDTO]): Observable<any> {
+    return processMethod.findByFilterV4([[], ['(USER_GUID=' + res[0].USER_GUID + ')'], null, null, null, [], null]).pipe(
+      mergeMap(res2 => {
+        if (res2.length == 0) {
+          return of(new NotFoundException('User not found'));
+        } else {
+          return this.processPassword([data, res[0], processMethod]).pipe(map(res => {
+            return res.data.resource;
+          }));
+        }
+      }));
   }
 
   /**
@@ -104,48 +102,46 @@ export class ForgotPasswordService {
         // console.log(err);
       });
 
-    return this.deleteToken(newPasswordData.tokenId);
-
+    return deleteToken([newPasswordData.tokenId, this.forgotPasswordDbService]);
 
   }
 
   /**
-   * Delete used token
+   * Setup database table to check for tenant and user
    *
-   * @param {string} tokenId
+   * @param {[SendEmailDTO, string, string, string]} [sendEmailDTO, userAgent, ip, role]
    * @returns
    * @memberof ForgotPasswordService
    */
-  public deleteToken(tokenId: string) {
+  public forgotPasswordProcess([sendEmailDTO, userAgent, ip, role]: [SendEmailDTO, string, string, string]) {
+    let method;
 
-    let model = new ForgotPasswordModel();
-    model.TOKEN_GUID = tokenId;
-    model.DELETED_AT = new Date().toISOString();
-    const resource = new Resource(new Array);
-    resource.resource.push(model);
+    if (role == 'tenant')
+      method = this.forgotPasswordChecking([sendEmailDTO, this.userAdminDbService, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
+    else if (role == 'user')
+      method = this.forgotPasswordChecking([sendEmailDTO, this.userDbService, userAgent, 'user', 'eLeave', ip]);
 
-    return this.forgotPasswordDbService.updateByModel([resource, ['TOKEN_GUID', 'HTTP_REFERER'], [], []]);
+    return method;
   }
 
   /**
-   * Send email for user tenant
+   * Check user exist in db
    *
-   * @param {string} email
+   * @param {([SendEmailDTO, UserDbService | UserAdminDbService, string, string, string, string])} [sendEmailDTO, dbService, userAgent, role, title, ip]
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordTenantProcess([sendEmailDTO, userAgent, ip]: [SendEmailDTO, string, string]) {
+  public forgotPasswordChecking([sendEmailDTO, dbService, userAgent, role, title, ip]: [SendEmailDTO, UserDbService | UserAdminDbService, string, string, string, string]) {
     const { email, httpReferer } = sendEmailDTO;
     if (email != '{email}' && email.trim() != '') {
 
-      return this.userAdminDbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
+      return dbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
         res => {
           if (res.length > 0) {
             let userGuid = res[0].USER_GUID;
-            let userFullname = res[0].FULLNAME;
+            let userFullname = role == 'tenant' ? res[0].FULLNAME : res[0].EMAIL;
             let loginId = res[0].LOGIN_ID;
-
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'tenant', 'eLeave Tenant Management', ip, httpReferer]);
+            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, title, ip, httpReferer]);
 
             return results;
           } else {
@@ -156,105 +152,25 @@ export class ForgotPasswordService {
     } else {
       throw new BadRequestException('Please set an email', 'No email specify');
     }
-
   }
 
-
-
   /**
-   * Send email for user eLeave
+   * Create token and send email
    *
-   * @param {[string, string]} [email, userAgent]
+   * @param {[string, string, string, string, string, string, string, string, string]} [userGuid, loginId, userFullname, email, userAgent, role, app, myIp, httpReferer]
    * @returns
    * @memberof ForgotPasswordService
    */
-  public forgotPasswordUserProcess([sendEmailDTO, userAgent, ip]: [SendEmailDTO, string, string]) {
-    const { email, httpReferer } = sendEmailDTO;
-    if (email != '{email}' && email.trim() != '') {
-
-      return this.userDbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
-        res => {
-          if (res.length > 0) {
-            let userGuid = res[0].USER_GUID;
-            let userFullname = res[0].EMAIL;
-            let loginId = res[0].LOGIN_ID;
-            let results = this.createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, 'user', 'eLeave', ip, httpReferer]);
-
-            return results;
-          } else {
-            throw new NotFoundException('No user registered with this email', 'No user found');
-          }
-        })
-      );
-    } else {
-      throw new BadRequestException('Please set an email', 'No email specify');
-    }
-
-  }
-
-  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app, ip, httpReferer]: [string, string, string, string, string, string, string, string, string]) {
-    // const myIp = await publicIp.v4();
-
-    // const getIP = require('external-ip')();
-
-    // const ipData = () => {
-    //   return new Promise((resolve, reject) => {
-    //     getIP((err, ip) => {
-    //       if (err) {
-    //         // every service in the list has failed
-    //         return reject(err);
-    //       }
-    //       else {
-    //         resolve(ip)
-    //       }
-    //     });
-    //   });
-    // }
-
-    // let myIp: any = await ipData();
-    // console.log(myIpTemp + '' + myIp);
-    let myIp = ip;
-    console.log(myIp);
-    // if (myIp == '1') {
-    //   myIp = '60.53.219.114';
-    // }
+  public async createTokenAndSendMail([userGuid, loginId, userFullname, email, userAgent, role, app, myIp, httpReferer]: [string, string, string, string, string, string, string, string, string]) {
 
     let myLocation = await iplocation(myIp);
 
-    return await this.createToken([userGuid, loginId, userFullname, role, myLocation, httpReferer]).then(
+    return await createToken([userGuid, loginId, userFullname, role, myLocation, httpReferer, this.forgotPasswordDbService]).then(
       data => {
         const tokenId = data.data.resource[0].TOKEN_GUID;
         return this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation, role]);
       }
     );
-  }
-
-  /**
-   * Create token
-   *
-   * @param {[string, string, string, string]} [userGuid, loginId, fullname, role]
-   * @returns
-   * @memberof ForgotPasswordService
-   */
-  public createToken([userGuid, loginId, fullname, role, myLocation, httpReferer]: [string, string, string, string, IPResponse, string]) {
-    // setup xml data user access from location
-    let xmlLocation = [];
-    xmlLocation['root'] = myLocation;
-
-    const resource = new Resource(new Array);
-    let model = new ForgotPasswordModel();
-
-    model.TOKEN_GUID = v1();
-    model.USER_GUID = userGuid;
-    model.LOGIN_ID = loginId;
-    model.FULLNAME = fullname;
-    model.HTTP_REFERER = httpReferer;
-    model.ROLE = role;
-    model.USER_TRACKING = convertJsonToXML(xmlLocation);
-
-    resource.resource.push(model);
-
-    return this.forgotPasswordDbService.createByModel([resource, [], [], ['TOKEN_GUID']]).toPromise();
   }
 
   /**

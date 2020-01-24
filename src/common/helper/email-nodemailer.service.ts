@@ -68,11 +68,12 @@ export class EmailNodemailerService {
     const callBackSendMail = () => {
       return new Promise((resolve, reject) => {
         smtpTransport.sendMail(mailOptions, function (error, info) {
-          if (error) {
-            return reject(error);
-          } else {
-            resolve(info);
-          }
+          // if (error) {
+          //   return reject(error);
+          // } else {
+          //   resolve(info);
+          // }
+          error ? reject(error) : resolve(info);
         });
       });
     }
@@ -89,11 +90,12 @@ export class EmailNodemailerService {
     const callBackReadFile = () => {
       return new Promise((resolve, reject) => {
         fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(callback(null, html));
-          }
+          // if (err) {
+          //   reject(err);
+          // } else {
+          //   resolve(callback(null, html));
+          // }
+          err ? reject(err) : resolve(callback(null, html));
         });
       });
     }
