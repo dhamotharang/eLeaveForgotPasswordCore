@@ -44,7 +44,7 @@ export class EmailNodemailerService {
     let data = {};
     data['replacement'] = replacements;
     data['from'] = from;
-    data['emailTosend'] = emailTosend; // + ',fakhri@zen.com.my';
+    data['emailTosend'] = emailTosend;
     data['subject'] = subject;
 
     return this.readHTMLFile(template, this.callbackReadHTML(data));
@@ -68,11 +68,6 @@ export class EmailNodemailerService {
     const callBackSendMail = () => {
       return new Promise((resolve, reject) => {
         smtpTransport.sendMail(mailOptions, function (error, info) {
-          // if (error) {
-          //   return reject(error);
-          // } else {
-          //   resolve(info);
-          // }
           error ? reject(error) : resolve(info);
         });
       });
@@ -90,11 +85,6 @@ export class EmailNodemailerService {
     const callBackReadFile = () => {
       return new Promise((resolve, reject) => {
         fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
-          // if (err) {
-          //   reject(err);
-          // } else {
-          //   resolve(callback(null, html));
-          // }
           err ? reject(err) : resolve(callback(null, html));
         });
       });

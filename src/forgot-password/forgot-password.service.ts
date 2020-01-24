@@ -42,7 +42,6 @@ export class ForgotPasswordService {
     return this.forgotPasswordDbService.findByFilterV4([[], ['(TOKEN_GUID=' + data.tokenId + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
       mergeMap(res => {
         if (res.length > 0) {
-          // let dbTable = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
           let processMethod = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
           return this.checkUser([res, processMethod, data]);
         } else
@@ -92,9 +91,7 @@ export class ForgotPasswordService {
 
     method.updateByModel([resource, [], [], []]).subscribe(
       data => {
-        // console.log(data.data.resource);
       }, err => {
-        // console.log(err);
       });
 
     return deleteToken([newPasswordData.tokenId, this.forgotPasswordDbService]);

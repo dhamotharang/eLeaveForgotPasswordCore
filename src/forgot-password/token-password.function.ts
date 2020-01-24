@@ -4,7 +4,6 @@ import { IPResponse } from "iplocation/lib/interface";
 import { v1 } from 'uuid';
 import { ForgotPasswordDbService } from "src/common/db/table.db.service";
 
-// const publicIp = require('public-ip');
 var { convertJsonToXML } = require('@zencloudservices/xmlparser');
 
 export function deleteToken([tokenId, method]: [string, ForgotPasswordDbService]) {

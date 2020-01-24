@@ -62,26 +62,6 @@ export class ForgotPasswordController {
     // let ip;
     let ip = await this.getMyIp([req]);
 
-    // var externalip = require('externalip');
-
-    // const getExternalIp = async () => {
-    //   return await new Promise((resolve, reject) => {
-    //     externalip(function (err, ip) {
-    //       // if (err) { return reject(err); }
-    //       // else { resolve(ip); }
-    //       err ? reject(err) : resolve(ip);
-    //     });
-    //   });
-    // }
-    // const myIp = await getExternalIp();
-
-    // ip = myIp;
-
-    // if (req.headers.hasOwnProperty('x-real-ip') && req.headers['x-real-ip'] != '-')
-    //   ip = req.headers['x-real-ip'];
-    // else if (req.headers.hasOwnProperty('x-forwarded-for'))
-    //   ip = req.headers['x-forwarded-for'];
-
     let method;
     if (sendEmailDTO.role == 'tenant')
       method = this.changePasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'tenant']);
