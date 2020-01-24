@@ -5,6 +5,7 @@ import { NewPasswordDTO } from './dto/new-password.dto';
 import { Response } from 'express';
 import { SendEmailDTO } from './dto/send-email.dto';
 import { of } from 'rxjs';
+import { ChangePasswordService } from './change-password.service';
 
 /**
  * Controller for forgot password
@@ -20,7 +21,8 @@ export class ForgotPasswordController {
    * @memberof ForgotPasswordController
    */
   constructor(
-    private readonly forgotPasswordService: ForgotPasswordService
+    private readonly forgotPasswordService: ForgotPasswordService,
+    private readonly changePasswordService: ChangePasswordService
   ) { }
 
   /**
@@ -82,9 +84,9 @@ export class ForgotPasswordController {
 
     let method;
     if (sendEmailDTO.role == 'tenant')
-      method = this.forgotPasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'tenant']);
+      method = this.changePasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'tenant']);
     else if (sendEmailDTO.role == 'user')
-      method = this.forgotPasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'user']);
+      method = this.changePasswordService.forgotPasswordProcess([sendEmailDTO, userAgent, ip, 'user']);
     else
       method = of(new BadRequestException('Invalid filter'));
 
