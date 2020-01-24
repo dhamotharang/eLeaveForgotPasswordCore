@@ -1,16 +1,19 @@
 import { Injectable, HttpService } from "@nestjs/common";
 import { BaseDBService } from "../base/base-db.service";
 import { QueryParserService } from "../helper/query-parser.service";
+import { IDbService } from '../../../dist/interface/IDbService';
+
 
 /**
- * DB table : tenant view role : t_view_role
+ *  DB table : tenant view role : t_view_role
  *
  * @export
  * @class RoleDbService
  * @extends {BaseDBService}
+ * @implements {IDbService}
  */
 @Injectable()
-export class RoleDbService extends BaseDBService {
+export class RoleDbService extends BaseDBService implements IDbService {
   /**
    *Creates an instance of RoleDbService.
    * @param {HttpService} httpService http service
@@ -21,16 +24,16 @@ export class RoleDbService extends BaseDBService {
 }
 
 
-
 /**
  * DB table : user main tenant : user_main_tenant
  *
  * @export
- * @class UserDbService
+ * @class UserAdminDbService
  * @extends {BaseDBService}
+ * @implements {IDbService}
  */
 @Injectable()
-export class UserAdminDbService extends BaseDBService {
+export class UserAdminDbService extends BaseDBService implements IDbService {
   /**
    * Declare table
    *
@@ -52,9 +55,10 @@ export class UserAdminDbService extends BaseDBService {
  * @export
  * @class UserDbService
  * @extends {BaseDBService}
+ * @implements {IDbService}
  */
 @Injectable()
-export class UserDbService extends BaseDBService {
+export class UserDbService extends BaseDBService implements IDbService {
   /**
    * Declare table
    *
@@ -76,9 +80,10 @@ export class UserDbService extends BaseDBService {
  * @export
  * @class ForgotPasswordDbService
  * @extends {BaseDBService}
+ * @implements {IDbService}
  */
 @Injectable()
-export class ForgotPasswordDbService extends BaseDBService {
+export class ForgotPasswordDbService extends BaseDBService implements IDbService {
   /**
    * Declare table
    *
