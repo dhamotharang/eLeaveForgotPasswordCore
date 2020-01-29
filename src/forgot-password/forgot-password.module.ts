@@ -6,6 +6,7 @@ import { ForgotPasswordService } from "./forgot-password.service";
 import { UserDbService, ForgotPasswordDbService, UserAdminDbService } from "../common/db/table.db.service";
 import { EmailNodemailerService } from "../common/helper/email-nodemailer.service";
 import { ChangePasswordService } from "./change-password.service";
+import { DBService } from './db.service';
 
 @Module({
   providers: [
@@ -15,7 +16,8 @@ import { ChangePasswordService } from "./change-password.service";
     EmailNodemailerService,
     ForgotPasswordDbService,
     UserAdminDbService,
-    ChangePasswordService
+    ChangePasswordService,
+    DBService
   ],
   controllers: [
     ForgotPasswordController

@@ -8,6 +8,7 @@ import { Resource } from '../common/model/resource.model';
 import { of, Observable } from 'rxjs';
 import { ForgotPasswordModel } from '../common/model/forgot-password.model';
 import { deleteToken } from './token-password.function';
+import { DBService } from './db.service';
 
 /**
  * Service for forgot password
@@ -17,18 +18,13 @@ import { deleteToken } from './token-password.function';
  */
 @Injectable()
 export class ForgotPasswordService {
-  // private readonly forgotPasswordDbService;
+
   /**
    *Creates an instance of ForgotPasswordService.
-   * @param {UserDbService} userDbService DB service for usermain tenant
-   * @param {EmailNodemailerService} emailNodemailerService Email nodemailer service
+   * @param {DBService} dbService Database service
    * @memberof ForgotPasswordService
    */
-  constructor(
-    private readonly userDbService: UserDbService,
-    private readonly userAdminDbService: UserAdminDbService,
-    private readonly forgotPasswordDbService: ForgotPasswordDbService
-  ) { }
+  constructor(private readonly dbService: DBService) { }
 
   /**
    * Forgot password function service
@@ -39,10 +35,10 @@ export class ForgotPasswordService {
    */
   public forgotPassword([data]: [NewPasswordDTO]) {
 
-    return this.forgotPasswordDbService.findByFilterV4([[], ['(TOKEN_GUID=' + data.tokenId + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
+    return this.dbService.forgotPasswordDbService.findByFilterV4([[], ['(TOKEN_GUID=' + data.tokenId + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
       mergeMap(res => {
         if (res.length > 0) {
-          let processMethod = res[0].ROLE == 'tenant' ? this.userAdminDbService : this.userDbService;
+          let processMethod = res[0].ROLE == 'tenant' ? this.dbService.userAdminDbService : this.dbService.userDbService;
           return this.checkUser([res, processMethod, data]);
         } else
           return of(new BadRequestException('Invalid token'));
@@ -94,7 +90,7 @@ export class ForgotPasswordService {
       }, err => {
       });
 
-    return deleteToken([newPasswordData.tokenId, this.forgotPasswordDbService]);
+    return deleteToken([newPasswordData.tokenId, this.dbService.forgotPasswordDbService]);
 
   }
 

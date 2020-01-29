@@ -2,7 +2,7 @@ import { ForgotPasswordModel } from "../common/model/forgot-password.model";
 import { Resource } from "../common/model/resource.model";
 import { IPResponse } from "iplocation/lib/interface";
 import { v1 } from 'uuid';
-import { ForgotPasswordDbService } from "src/common/db/table.db.service";
+import { ForgotPasswordDbService } from "../common/db/table.db.service";
 
 var { convertJsonToXML } = require('@zencloudservices/xmlparser');
 

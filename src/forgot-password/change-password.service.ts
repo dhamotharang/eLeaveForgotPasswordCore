@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { EmailNodemailerService } from "../common/helper/email-nodemailer.service";
-import { UserDbService, UserAdminDbService, ForgotPasswordDbService } from "../common/db/table.db.service";
+import { UserDbService, UserAdminDbService } from "../common/db/table.db.service";
 import { SendEmailDTO } from "./dto/send-email.dto";
 import { mergeMap } from "rxjs/operators";
 
@@ -8,13 +8,20 @@ import iplocation from "iplocation";
 import { IPResponse } from 'iplocation/lib/interface';
 
 import { createToken } from './token-password.function';
+import { DBService } from "./db.service";
 
 @Injectable()
 export class ChangePasswordService {
-  constructor(private readonly userDbService: UserDbService,
-    private readonly userAdminDbService: UserAdminDbService,
-    private readonly emailNodemailerService: EmailNodemailerService,
-    private readonly forgotPasswordDbService: ForgotPasswordDbService) { }
+  /**
+   *Creates an instance of ChangePasswordService.
+   * @param {DBService} dbService Database service
+   * @param {EmailNodemailerService} emailNodemailerService Email node mailer service
+   * @memberof ChangePasswordService
+   */
+  constructor(
+    private readonly dbService: DBService,
+    private readonly emailNodemailerService: EmailNodemailerService
+  ) { }
 
   /**
      * Setup database table to check for tenant and user
@@ -27,9 +34,9 @@ export class ChangePasswordService {
     let method;
 
     if (role == 'tenant')
-      method = this.forgotPasswordChecking([sendEmailDTO, this.userAdminDbService, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
+      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userAdminDbService, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
     else if (role == 'user')
-      method = this.forgotPasswordChecking([sendEmailDTO, this.userDbService, userAgent, 'user', 'eLeave', ip]);
+      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userDbService, userAgent, 'user', 'eLeave', ip]);
 
     return method;
   }
@@ -75,7 +82,7 @@ export class ChangePasswordService {
 
     let myLocation = await iplocation(myIp);
 
-    return await createToken([userGuid, loginId, userFullname, role, myLocation, httpReferer, this.forgotPasswordDbService]).then(
+    return await createToken([userGuid, loginId, userFullname, role, myLocation, httpReferer, this.dbService.forgotPasswordDbService]).then(
       data => {
         const tokenId = data.data.resource[0].TOKEN_GUID;
         return this.sendMailSetup([userFullname, email, tokenId, userAgent, app, myLocation, role]);
