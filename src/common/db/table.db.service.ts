@@ -1,7 +1,7 @@
 import { Injectable, HttpService } from "@nestjs/common";
 import { BaseDBService } from "../base/base-db.service";
 import { QueryParserService } from "../helper/query-parser.service";
-import { IDbService } from '../../../dist/interface/IDbService';
+import { IDbService } from '../../interface/IDbService';
 
 
 /**
