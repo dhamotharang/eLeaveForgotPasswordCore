@@ -100,10 +100,12 @@ export class ChangePasswordService {
   public sendMailSetup([name, email, tokenId, userAgent, appName, myLocation, role]: [string, string, string, string, string, IPResponse, string]) {
     const { ip, timezone, postal, city, region, country, latitude, longitude } = myLocation;
 
+    // 'http://zencore:8104/#/reset-password/'
+
     var replacements = {
       email: email,
       product_name: appName,
-      action_url: 'http://zencore:8104/#/reset-password/' + role + '/' + tokenId,
+      action_url: process.env.URL_FORGOT_PASSWORD + role + '/' + tokenId,
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
     };
