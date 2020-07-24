@@ -100,14 +100,59 @@ export class EmailNodemailerService {
    * @memberof EmailNodemailerService
    */
   public createSMTP() {
+    // require('dotenv').config();
+    // console.log('are u here?');
+    // console.log(process.env.SMTPHOST);
+    // console.log(process.env.SMTPPORT);
+    // console.log(process.env.SMTPSECURE);
+    // console.log(process.env.SMTPUSER);
+    // console.log(process.env.SMTPPASSWORD);
+
+    let host1 = process.env.SMTPHOST;
+    let port1: number = parseInt(process.env.SMTPPORT);
+    let secure1: boolean = JSON.parse(process.env.SMTPSECURE.toLowerCase()); //Boolean(process.env.SMTPSECURE);
+    let user1 = process.env.SMTPUSER;
+    let pass1 = process.env.SMTPPASSWORD;
+
+    let host = "smtp.office365.com";//"smtp.ethereal.email";
+    let port = 587;
+    let secure = false;
+    let user = "donotreply@zen.com.my";//'casimir.mcglynn@ethereal.email';
+    let pass = "Huc84941";//'GYSA4r14EQRPB9guAK';
+
+    // username ni: donotreply@zen.com.my
+
+    // password: 'Huc84941'
+
+    // console.log(typeof (host1) + " :" + host1 + ":");
+    // console.log(typeof (port1) + " :" + port1 + ":");
+    // console.log(typeof (secure1) + " :" + secure1 + ":");
+    // console.log(typeof (user1) + " :" + user1 + ":");
+    // console.log(typeof (pass1) + " :" + pass1 + ":");
+
+    // console.log('\n' + typeof (host) + " :" + host + ":");
+    // console.log(typeof (port) + " :" + port + ":");
+    // console.log(typeof (secure) + " :" + secure + ":");
+    // console.log(typeof (user) + " :" + user + ":");
+    // console.log(typeof (pass) + " :" + pass + ":");
+
     smtpTransport = nodemailer.createTransport({
-      host: process.env.SMTPHOST || "smtp.ethereal.email",
-      port: process.env.SMTPPORT || 587,
-      secure: process.env.SMTPSECURE || false, // true for 465, false for other ports
+      host: host1,
+      port: port1,
+      secure: secure1, // true for 465, false for other ports
       auth: {
-        user: process.env.SMTPUSER || 'casimir.mcglynn@ethereal.email',
-        pass: process.env.SMTPPASSWORD || 'GYSA4r14EQRPB9guAK'
+        user: user1,
+        pass: pass1,
       }
+      ,
+
+      // tls: { ciphers: 'SSLv3' },
+      // tls: { rejectUnauthorized: false }
+      // ,
+      // tls: {
+      //   // do not fail on invalid certs
+      //   rejectUnauthorized: false
+      // },
     });
 
     return smtpTransport;

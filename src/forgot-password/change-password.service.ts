@@ -9,7 +9,7 @@ import { IPResponse } from 'iplocation/lib/interface';
 
 import { createToken } from './token-password.function';
 import { DBService } from "./db.service";
-
+require('dotenv').config();
 @Injectable()
 export class ChangePasswordService {
   /**
@@ -109,7 +109,7 @@ export class ChangePasswordService {
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
     };
-    var from = 'wantan.wonderland.2018@gmail.com';
+    var from = process.env.SMTPUSER;//'wantan.wonderland.2018@gmail.com';
     var emailTosend = email;
     var subject = 'Forgot password ' + appName;
     var template = 'src/common/email-templates/forgot-password.html';
