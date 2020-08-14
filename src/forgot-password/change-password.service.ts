@@ -105,6 +105,33 @@ export class ChangePasswordService {
     var replacements = {
       email: email,
       product_name: appName,
+      action_url: process.env.URL_FORGOT_PASSWORD + tokenId + '/local',
+      name: name,
+      ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
+    };
+    var from = process.env.SMTPUSER;//'wantan.wonderland.2018@gmail.com';
+    var emailTosend = email;
+    var subject = 'Forgot password ' + appName;
+    var template = 'src/common/email-templates/forgot-password.html';
+
+    return this.emailNodemailerService.mailProcessPublic([replacements, from, emailTosend, subject, userAgent, template]);
+  }
+
+  /**
+   * Send email setup
+   *
+   * @param {[string, string, string, string, string, IPResponse]} [name, email, tokenId, userAgent, appName, myLocation]
+   * @returns
+   * @memberof ForgotPasswordService
+   */
+  public sendMailSetup2([name, email, tokenId, userAgent, appName, myLocation, role]: [string, string, string, string, string, IPResponse, string]) {
+    const { ip, timezone, postal, city, region, country, latitude, longitude } = myLocation;
+
+    // 'http://zencore:8104/#/reset-password/'
+
+    var replacements = {
+      email: email,
+      product_name: appName,
       action_url: process.env.URL_FORGOT_PASSWORD + role + '/' + tokenId,
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
