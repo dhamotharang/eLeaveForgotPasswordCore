@@ -7,16 +7,29 @@ async function bootstrap() {
   const fs = require('fs');
   let app;
   // console.log(process.env.SSL_HTTP);
-  if (process.env.SSL_HTTP == 'true') {
-    // console.log('here');
-    // fs.readFileSync('src/config/certlocal.pfx');
-    const certFile = fs.readFileSync(process.env.SSL_CERT_PATH);
-    const keyFile = fs.readFileSync(process.env.SSL_KEY_PATH);
-    app = await NestFactory.create(AppModule, { cors: true, httpsOptions: { cert: certFile, key: keyFile } });
-  } else {
-    console.log('hero');
-    app = await NestFactory.create(AppModule, { cors: true });
-  }
+  // if (process.env.SSL_HTTP == 'true') {
+  // console.log('here');
+  // const caFile = fs.readFileSync('src/config/certs/__beesuite_app.crt');
+  // const certFile = fs.readFileSync('src/config/certs/wildcard_beesuite_app.crt', 'utf8');
+  // const keyFile = fs.readFileSync('src/config/certs/wildcard_beesuite_app.key', 'utf8');
+  // const pfxFile = fs.readFileSync('src/config/certs/wildcard_beesuite_app.pfx');
+  // const pfxFile = fs.readFileSync(process.env.PFX_PATH);
+
+  // const cerFile = fs.readFileSync('src/config/certs/certDigi.cer', 'utf8');
+
+  // fs.readFileSync('src/config/certlocal.pfx');
+  // const certFile = fs.readFileSync(process.env.SSL_CERT_PATH);
+  // const keyFile = fs.readFileSync(process.env.SSL_KEY_PATH);
+  // app = await NestFactory.create(AppModule, { cors: true, httpsOptions: { cert: certFile, key: keyFile } });
+  // app = await NestFactory.create(AppModule, { cors: true, httpsOptions: { cert: cerFile } });
+  // app = await NestFactory.create(AppModule, { cors: true, httpsOptions: { cert: certFile, key: keyFile } });
+
+  // app = await NestFactory.create(AppModule, { cors: true, httpsOptions: { pfx: pfxFile, passphrase: process.env.PFX_PASS } });
+
+  // } else {
+  // console.log('hero');
+  app = await NestFactory.create(AppModule, { cors: true });
+  // }
 
   app.useGlobalPipes(new ValidationPipe(
     {

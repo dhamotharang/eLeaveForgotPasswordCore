@@ -10,6 +10,11 @@ import { ForgotPasswordModel } from '../common/model/forgot-password.model';
 import { deleteToken } from './token-password.function';
 import { DBService } from './db.service';
 
+/** Decrypt process atob */
+var atob = require('atob');
+/** CryptoJS encryption */
+var CryptoJS = require("crypto-js");
+
 /**
  * Service for forgot password
  *
@@ -78,8 +83,18 @@ export class ForgotPasswordService {
     data.USER_GUID = tokenModel.USER_GUID;
     if (tokenModel.ROLE == 'tenant')
       data.PASSWORD = encryptProcess([newPasswordData.password, tokenModel.LOGIN_ID]);
-    else
-      data.PASSWORD = newPasswordData.password;
+    else {
+      let password = newPasswordData.password;
+
+      // decrypt encryption
+      password = atob(password);
+
+      // hash the password
+      password = CryptoJS.SHA256(password.trim()).toString(CryptoJS.enc.Hex);
+      password = CryptoJS.AES.encrypt(password, 'secret key 122').toString();
+
+      data.PASSWORD = password;
+    }
     setUpdateData([data, tokenModel.USER_GUID]);
 
     const resource = new Resource(new Array);
