@@ -75,7 +75,7 @@ export class ForgotPasswordController {
         const fs = require('fs');
 
         // append data to a file
-        fs.appendFile('sendMail.log', '\n' + JSON.stringify(data), (err) => {
+        fs.appendFile('sendMail.log', '\n[' + new Date() + ']' + JSON.stringify(data), (err) => {
           if (err) {
             throw err;
           }
