@@ -109,7 +109,7 @@ export class ChangePasswordService {
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
     };
-    var from = process.env.SMTPUSER;//'wantan.wonderland.2018@gmail.com';
+    var from = process.env.SMTPSENDER;//'wantan.wonderland.2018@gmail.com';
     var emailTosend = email;
     var subject = 'Forgot password ' + appName;
     var template = 'src/common/email-templates/forgot-password.html';
@@ -136,7 +136,7 @@ export class ChangePasswordService {
       name: name,
       ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
     };
-    var from = process.env.SMTPUSER;//'wantan.wonderland.2018@gmail.com';
+    var from = process.env.SMTPSENDER;//'wantan.wonderland.2018@gmail.com';
     var emailTosend = email;
     var subject = 'Forgot password ' + appName;
     var template = 'src/common/email-templates/forgot-password.html';
