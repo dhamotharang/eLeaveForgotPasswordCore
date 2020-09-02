@@ -34,9 +34,9 @@ export class ChangePasswordService {
     let method;
 
     if (role == 'tenant')
-      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userAdminDbService, userAgent, 'tenant', 'eLeave Tenant Management', ip]);
+      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userAdminDbService, userAgent, 'tenant', 'beeSuite Tenant Management', ip]);
     else if (role == 'user')
-      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userDbService, userAgent, 'user', 'eLeave', ip]);
+      method = this.forgotPasswordChecking([sendEmailDTO, this.dbService.userDbService, userAgent, 'user', 'beeSuite', ip]);
 
     return method;
   }
@@ -106,8 +106,14 @@ export class ChangePasswordService {
       email: email,
       product_name: appName,
       action_url: process.env.URL_FORGOT_PASSWORD + tokenId + '/local',
+      support_url: "https://www.beesuite.app/contact-us/",
       name: name,
-      ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`
+      year: new Date().getFullYear(),
+      company_name: 'Zen Computer System Sdn. Bhd.',
+      address_one: '4808-1-28, CBD Perdana 2, Persiaran Flora, 63000 Cyberjaya, Selangor',
+      ip_data: `[${ip}] [${timezone}] [${postal} ${city} ${region} ${country}] [${latitude},${longitude}]`,
+      url_image: "https://www.beesuite.app/wp-content/uploads/2020/07/bee04.png",
+      url_app: "https://www.beesuite.app"
     };
     var from = process.env.SMTPSENDER;//'wantan.wonderland.2018@gmail.com';
     var emailTosend = email;
