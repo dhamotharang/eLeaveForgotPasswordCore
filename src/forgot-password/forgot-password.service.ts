@@ -58,7 +58,7 @@ export class ForgotPasswordService {
    * @memberof ForgotPasswordService
    */
   public checkUser([res, processMethod, data]: [any[], UserAdminDbService | UserDbService, NewPasswordDTO]): Observable<any> {
-    return processMethod.findByFilterV4([[], ['(USER_GUID=' + res[0].USER_GUID + ')', ' AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
+    return processMethod.findByFilterV4([[], ['(USER_GUID=' + res[0].USER_GUID + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(
       mergeMap(res2 => {
         if (res2.length == 0) {
           return of(new NotFoundException('User not found'));
