@@ -52,7 +52,7 @@ export class ChangePasswordService {
     const { email, httpReferer } = sendEmailDTO;
     if (email != '{email}' && email.trim() != '') {
 
-      return dbService.findByFilterV4([[], ['(EMAIL=' + email + ')'], null, null, null, [], null]).pipe(mergeMap(
+      return dbService.findByFilterV4([[], ['(EMAIL=' + email + ')', 'AND (DELETED_AT IS NULL)'], null, null, null, [], null]).pipe(mergeMap(
         res => {
           if (res.length > 0) {
             let userGuid = res[0].USER_GUID;
